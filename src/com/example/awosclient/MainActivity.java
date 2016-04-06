@@ -1,5 +1,6 @@
 package com.example.awosclient;
 
+import com.example.awosclient.tasks.FetchCasesTask;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -15,8 +16,10 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.plus.Plus;
 
 import android.support.v7.app.ActionBarActivity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -25,6 +28,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity implements OnClickListener, ConnectionCallbacks, OnConnectionFailedListener {
 	
@@ -63,8 +67,13 @@ private TextView tvEmail;
 		// Initialize the GooglePlus Client
 		try
 		{
+			this.validateServerClientID();
+			//GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
+			GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+	        .requestIdToken(getString(R.string.server_client_id)).requestEmail().build();
 			
-			GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
+			
+			
 			/*mGoogleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this)
 				.addOnConnectionFailedListener(this)
 				.addApi(Plus.API)
@@ -200,11 +209,40 @@ private TextView tvEmail;
 			
 			GoogleSignInAccount account = result.getSignInAccount();
 			Log.d(TAG, "Signed In User Name = " + account.getDisplayName());
-			tvDisplayName.setText("Welcome " + account.getDisplayName());
+			//tvDisplayName.setText("Welcome " + account.getDisplayName());
+			//tvDisplayName.setText("Token ID:=" + account.getIdToken());
 			tvEmail.setText("Your email is: " + account.getEmail());
 			updateUI(true);
 			
+            //*********************************************************			
+			// Save token in Sharedpreferences so that it is available
+			// for all activities across the app
+			//***********************************************************
+			SharedPreferences authData = this.getSharedPreferences("user", Context.MODE_PRIVATE);
+			authData.edit().putString("token", account.getIdToken()).commit();
+			authData.edit().putString("email", account.getEmail()).commit();
+			
+			
+			Intent i = new Intent(this, CaseListActivity.class);
+			//i.putExtra("token", account.getIdToken());
+			//i.putExtra("email", account.getEmail());
+			
+			
+			
+			this.startActivity(i);
+			
+			
+			
 		}
+		else
+		{
+			Toast t = Toast.makeText(getApplicationContext(), "No Internet Connection", Toast.LENGTH_SHORT);
+			t.show();
+			
+			
+			
+		}
+		
 		
 	}
 
@@ -250,6 +288,22 @@ private TextView tvEmail;
 	public void onConnected(Bundle connectionHint) {
 		// TODO Auto-generated method stub
 		
+		// Check if the user is already connected
+		
+		boolean isUserLogged = this.getIntent().getBooleanExtra("loggedInState", false);
+		
+		if(isUserLogged)
+		{
+			Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
+	        mGoogleApiClient.disconnect();
+			this.signOutFromGPlus();
+			return;
+		}
+		
+		
+		Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
+        mGoogleApiClient.disconnect();
+		
 	}
 
 	@Override
@@ -283,6 +337,15 @@ private TextView tvEmail;
 		
 	}
 	
-	
+	  private void validateServerClientID() {
+	        String serverClientId = getString(R.string.server_client_id);
+	        String suffix = ".apps.googleusercontent.com";
+	        if (!serverClientId.trim().endsWith(suffix)) {
+	            String message = "Invalid server client ID in strings.xml, must end with " + suffix;
+
+	            Log.w(TAG, message);
+	            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+	        }
+	    }
 	
 }
