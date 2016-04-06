@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <CheckBox
+        android:id="@+id/case_list_item_solvedCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="false"
+        android:focusable="false" />
+    
+    <TextView
+        android:id="@+id/case_list_item_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="false"
+        android:layout_below="@id/case_list_item_title"
+        android:layout_toLeftOf="@+id/case_list_item_solvedCheckBox"
+        android:text="Case Title" />
+   
+    <TextView
+        android:id="@+id/case_list_item_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/case_list_item_title"
+        android:layout_toLeftOf="@id/case_list_item_solvedCheckBox"
+        android:text="Case Date" />
+    
+   
+    
+</RelativeLayout>
+    
